@@ -8,7 +8,6 @@ package main
 import (
 	"github.com/sirupsen/logrus"
 	"go-svc-tpl/app"
-	_ "go-svc-tpl/docs"
 	"go-svc-tpl/model"
 )
 
