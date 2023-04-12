@@ -25,12 +25,28 @@
 - [x] 预设人设功能，可以添加人设（不完善）
 - [ ] 多线程，集成
 
+## 使用须知
+1. 在model下创建**conf.ymal**，用来连接数据库
+```
+    sql:
+    username: [用户名]
+    password: [密码]
+    db_name: [数据库名称]
+```
 
+2. 在utils下创建**basicData.go** ,用于基本数据
+```
+var qqServe QqServe = Deal{}
+var qqUid = "你的qq号"         //填
+var AtQqUid = fmt.Sprintf("[CQ:at,qq=%v]", qqUid)
+var LenAtQqUid = len(AtQqUid) + 1
+var ip = "127.0.0.1"   //填你的部署的ip地址，这里是本地
+var setting = model.AllSetting
+``` 
 
 ## 一图看懂架构
 
 ![](https://raw.githubusercontent.com/Solituderr/goChatQqBot/master/images/1241.gif)
-
 
 
 
