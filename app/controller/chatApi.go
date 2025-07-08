@@ -6,6 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
 	"go-svc-tpl/model"
+	"go-svc-tpl/service"
 	"go-svc-tpl/utils"
 	"io"
 	"net/http"
@@ -56,92 +57,149 @@ func ClassifyReq(c echo.Context) error {
 				UserId:  strconv.FormatInt(gMsg.UserId, 10),
 				GroupId: strconv.FormatInt(gMsg.GroupId, 10),
 				Message: newMsg,
+				Sender:  gMsg.Sender,
 			}
 		} else {
-			flag = 0
-			//转化为common message
-			pMsg := new(model.PersonMsg)
-			if err := json.Unmarshal(data, pMsg); err != nil {
-				logrus.Error(err.Error())
-				return c.String(http.StatusOK, "not ok")
-			}
-			newMsg = pMsg.Message
-			cMsg = model.CommonMsg{
-				UserId:  strconv.FormatInt(pMsg.UserId, 10),
-				GroupId: "0",
-				Message: newMsg,
-			}
+			return c.String(http.StatusOK, "not group")
 		}
 		//根据 cMsg 和 flag 写功能类 要根据有无groupId选择不同的flag
 		//无指定内容
 		switch newMsg {
-		case "/菜单":
-			err := utils.AddMenu(cMsg, flag, c)
+		case ".enable1":
+			err := utils.AddEnableBot1(cMsg, flag, c)
 			return err
+			//case ".enable2":
+			//	err := utils.AddEnableBot2(cMsg, flag, c)
+			//	return err
+		}
+
+		if !utils.Enable1[cMsg.GroupId] {
+			return c.String(http.StatusOK, "okk")
+		}
+		//if !utils.Enable2[cMsg.GroupId] {
+		//	return c.String(http.StatusOK, "okk")
+		//}
+
+		switch newMsg {
+		case ".bot on":
+			err := utils.AddStartBot(cMsg, flag, c)
+			return err
+		case ".bot off":
+			err := utils.AddStopBot(cMsg, flag, c)
+			return err
+		}
+		if !utils.IsOn[cMsg.GroupId] {
+			return c.String(http.StatusOK, "okk")
+		}
+		switch newMsg {
 		case "/测":
 			err := utils.AddTestContext(cMsg, flag, c)
 			return err
-		case "/clear":
-			err := utils.AddDealClear(cMsg, flag, c)
+		case ".draw一会吃啥":
+			err := utils.AddEatWhat(cMsg, flag, c)
 			return err
-		case "/clearSys":
-			err := utils.AddDealClearSys(cMsg, flag, c)
+		case ".draw 一会吃啥":
+			err := utils.AddEatWhat(cMsg, flag, c)
 			return err
-		case "/listSet":
-			err := utils.ListSetting(cMsg, flag, c)
+		case ".draw 周易算卦":
+			err := utils.AddTellerZhou(cMsg, flag, c)
 			return err
-		case "/updates":
-			err := utils.AddUpdates(cMsg, flag, c)
+		case ".draw abo":
+			err := utils.AddABOTest(cMsg, flag, c)
 			return err
-		default:
-			break
+		case ".draw cp关键词":
+			err := utils.AddCPKeyWord(cMsg, flag, c)
+			return err
+		case "/listTime":
+			err := utils.AddListPushTime(cMsg, flag, c)
+			return err
+		case ".jrrp":
+			err := utils.AddLuckyNum(cMsg, flag, c)
+			return err
+		case "/listPush":
+			err := utils.AddListPush(cMsg, flag, c)
+			return err
+		case "/startPush":
+			err := utils.AddStartPush(cMsg, flag, c)
+			return err
+		case "/stopPush":
+			err := utils.AddStopPush(cMsg, flag, c)
+			return err
 		}
 		//有指定内容
 		switch {
-		case strings.Contains(newMsg, "/addAcc"):
-			msg := newMsg[8:]
-			cMsg.Message = msg
-			err := utils.AddDealAccess(cMsg, flag, c)
+		case service.IsMenu(cMsg.Message):
+			err := utils.AddMenu(cMsg, flag, c)
 			return err
-		case strings.Contains(newMsg, "/delAcc"):
-			uid := newMsg[8:]
-			cMsg.Message = uid
-			err := utils.AddDeleteAccess(cMsg, flag, c)
+		case service.IsQianDao(cMsg.Message):
+			err := utils.AddSignIn(cMsg, flag, c)
 			return err
-		case strings.Contains(newMsg, "/system"):
-			define := newMsg[8:]
-			cMsg.Message = define
-			err := utils.AddChangeSys(cMsg, flag, c)
+		case service.IsHaoGan(cMsg.Message):
+			err := utils.AddSelectLove(cMsg, flag, c)
 			return err
-		case strings.Contains(newMsg, "/set"):
-			index := newMsg[5:]
-			cMsg.Message = index
-			err := utils.GetSetting(cMsg, flag, c)
+		case service.IsHuDong(cMsg.Message):
+			err := utils.AddAction(cMsg, flag, c)
 			return err
-		case strings.Contains(newMsg, "/addSet"):
-			m := newMsg[8:]
-			cMsg.Message = m
-			err := utils.AddSetting(cMsg, flag, c)
+		case service.IsToudian(cMsg.Message):
+			err := utils.AddDiceRand(cMsg, flag, c)
+			return err
+		case service.IsStartShitou(cMsg.Message):
+			err := utils.AddStartRock(cMsg, flag, c)
+			return err
+		case service.IsShitou(cMsg.Message):
+			err := utils.AddRockGame(cMsg, flag, c)
+			return err
+		case service.IsYuanzuo(cMsg.Message):
+			err := utils.AddOriginalWork(cMsg, flag, c)
+			return err
+		case service.IsShengRi(cMsg.Message):
+			err := utils.AddBirthday(cMsg, flag, c)
+			return err
+		case service.IsBiaoQing(cMsg.Message):
+			err := utils.AddSendEmoji(cMsg, flag, c)
+			return err
+		case strings.Contains(newMsg, "天天宝今日"):
+			err := utils.AddCPName(cMsg, flag, c)
+			return err
+		case strings.Contains(newMsg, "送天天宝"):
+			err := utils.AddRcvGift(cMsg, flag, c)
+			return err
+		case strings.Contains(newMsg, "/addPush"):
+			cMsg.Message = newMsg[9:]
+			err := utils.AddPush(cMsg, flag, c)
+			return err
+		case strings.Contains(newMsg, "/delPush"):
+			cMsg.Message = newMsg[9:]
+			err := utils.AddDelPush(cMsg, flag, c)
+			return err
+		case newMsg[:3] == ".nn":
+			cMsg.Message = newMsg[4:]
+			err := utils.AddChangeName(cMsg, flag, c)
 			return err
 		default:
-			//群组里需要at才行，不然不回复 或者 私聊直接发送
-			if flag == 1 || flag == 0 {
-				err := utils.AddServeText(cMsg, flag, c)
-				return err
-			} else {
-				return c.String(http.StatusOK, "not at me")
-			}
+			return c.String(http.StatusOK, "ok")
+		}
+	} else if ch.PostType == "notice" {
+		nMsg := new(model.EnterGroup)
+
+		if err := json.Unmarshal(data, nMsg); err != nil {
+			logrus.Error(err.Error())
+			return c.String(http.StatusOK, "not ok")
 		}
 
-	} else if ch.PostType == "request" {
-		//这种其实是地址格式，需要用*转化为值
-		var addFri = new(model.AddFriMsg)
-		if err := json.Unmarshal(data, addFri); err != nil {
-			logrus.Error("json 解析 gg" + err.Error())
-			return c.String(http.StatusOK, "jiexi gg")
+		gid := strconv.Itoa(int(nMsg.GroupId))
+
+		if !utils.Enable1[gid] {
+			return c.String(http.StatusOK, "okk")
 		}
-		err := utils.AddServeQqFri(addFri, c)
-		return err
+		//if !utils.Enable2[gid] {
+		//	return c.String(http.StatusOK, "okk")
+		//}
+		if nMsg.NoticeType == "group_increase" {
+			err := utils.AddWelcomePerson(*nMsg, 1, c)
+			return err
+		}
+		return c.String(http.StatusOK, "okk")
 	} else {
 		return c.String(http.StatusOK, "no useful sending")
 	}

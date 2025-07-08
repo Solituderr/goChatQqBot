@@ -9,11 +9,18 @@ import (
 	"github.com/sirupsen/logrus"
 	"go-svc-tpl/app"
 	"go-svc-tpl/model"
+	"go-svc-tpl/utils"
 )
+
+func init() {
+
+}
 
 func main() {
 	logrus.SetReportCaller(true)
 	model.Init()
 	app.InitWebFramework()
+	go utils.PushPeripheral()
+	go utils.ClearUserInfo()
 	app.StartServer()
 }
