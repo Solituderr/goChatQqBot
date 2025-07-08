@@ -6,10 +6,11 @@
 package main
 
 import (
-	"github.com/sirupsen/logrus"
 	"go-svc-tpl/app"
 	"go-svc-tpl/model"
 	"go-svc-tpl/utils"
+
+	"github.com/sirupsen/logrus"
 )
 
 func init() {
@@ -19,8 +20,8 @@ func init() {
 func main() {
 	logrus.SetReportCaller(true)
 	model.Init()
-	app.InitWebFramework()
+	app.InitLagrangeBot()
 	go utils.PushPeripheral()
 	go utils.ClearUserInfo()
-	app.StartServer()
+	app.StartLagrangeBot()
 }

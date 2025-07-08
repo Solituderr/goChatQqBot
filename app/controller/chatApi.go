@@ -3,8 +3,6 @@ package controller
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/labstack/echo/v4"
-	"github.com/sirupsen/logrus"
 	"go-svc-tpl/model"
 	"go-svc-tpl/service"
 	"go-svc-tpl/utils"
@@ -12,6 +10,9 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/labstack/echo/v4"
+	"github.com/sirupsen/logrus"
 )
 
 func ClassifyReq(c echo.Context) error {
