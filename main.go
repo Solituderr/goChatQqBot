@@ -7,10 +7,8 @@ package main
 
 import (
 	"go-svc-tpl/app"
+	"go-svc-tpl/cronjob"
 	"go-svc-tpl/model"
-	"go-svc-tpl/utils"
-
-	"github.com/sirupsen/logrus"
 )
 
 func init() {
@@ -18,10 +16,9 @@ func init() {
 }
 
 func main() {
-	logrus.SetReportCaller(true)
 	model.Init()
 	app.InitLagrangeBot()
-	go utils.PushPeripheral()
-	go utils.ClearUserInfo()
+	go cronjob.PushPeripheral()
+	go cronjob.ClearUserInfo()
 	app.StartLagrangeBot()
 }

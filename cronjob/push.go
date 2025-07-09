@@ -1,14 +1,18 @@
-package utils
+package cronjob
 
 import (
-	"github.com/sirupsen/logrus"
+	"go-svc-tpl/app"
+	"go-svc-tpl/logs"
 	"go-svc-tpl/model"
+	"go-svc-tpl/utils"
 	"time"
 )
 
 func PushPeripheral() {
+	qqclient := app.GetQQClient()
+	qqServe := utils.GetQQServer()
 	for {
-		if !PushOn[PushGid] {
+		if !utils.PushOn[utils.PushGid] {
 			time.Sleep(10 * time.Second)
 			continue
 		}
@@ -19,7 +23,7 @@ func PushPeripheral() {
 		var nowT time.Time
 		if allt, err := model.QueryTime(); err != nil {
 			//fmt.Println(err)
-			logrus.Error(err)
+			logs.Error(err.Error())
 		} else {
 			for _, t := range allt {
 				if t.Hour() == hour && t.Minute() == min {
@@ -38,7 +42,7 @@ func PushPeripheral() {
 					GroupId: gid,
 					Message: send,
 				}
-				qqServe.SendMsg(cm, 2)
+				qqServe.SendMsg(cm, 2, qqclient)
 			}
 			time.Sleep(1 * time.Minute)
 		}

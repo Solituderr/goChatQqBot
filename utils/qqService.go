@@ -1,70 +1,75 @@
 package utils
 
 import (
-	"fmt"
-	"github.com/asmcos/requests"
+	"go-svc-tpl/logs"
 	"go-svc-tpl/model"
+	"strconv"
+
+	"github.com/LagrangeDev/LagrangeGo/client"
+	"github.com/LagrangeDev/LagrangeGo/message"
 )
 
 type QqServe interface {
-	SendMsg(cm model.CommonMsg, flag int) string
+	SendMsg(cm model.CommonMsg, flag int, client *client.QQClient)
 	AddQqFri(uid string, flag string) string
 	BanPeople(cm model.CommonMsg) string
 }
 
 type Deal struct{}
 
+func GetQQServer() QqServe {
+	return qqServe
+}
+
 // 响应msg id
 
-func (Deal) SendMsg(cm model.CommonMsg, flag int) string {
-	var resp *requests.Response
+func (Deal) SendMsg(cm model.CommonMsg, flag int, client *client.QQClient) {
 	//1表示群聊at 0表示私聊 2 表示群聊不at
+	uid1, err := strconv.Atoi(cm.UserId)
+	if err != nil {
+		logs.Error("[SendMsg] conv uid i64 to str error")
+		return
+	}
+	uid := uint32(uid1)
+	gid1, err := strconv.Atoi(cm.GroupId)
+	if err != nil {
+		logs.Error("[SendMsg] conv gid i64 to str error")
+		return
+	}
+	gid := uint32(gid1)
 	if flag == 1 {
-		cqmsg := fmt.Sprintf("[CQ:at,qq=%s] %s", cm.UserId, cm.Message)
-		url := fmt.Sprintf("http://%v/send_group_msg", ip)
-		data := requests.Datas{
-			"group_id": cm.GroupId,
-			"message":  cqmsg,
+		atMsg := message.NewAt(uid)
+		msg := message.NewText(cm.Message)
+		_, err := client.SendGroupMessage(gid, []message.IMessageElement{atMsg, msg})
+		if err != nil {
+			logs.Error("[SendMsg] %s", err.Error())
+			return
 		}
-		resp, _ = requests.Post(url, data)
 	} else if flag == 0 {
-		url := fmt.Sprintf("http://%v/send_private_msg", ip)
-		data := requests.Datas{
-			"user_id": cm.UserId,
-			"message": cm.Message,
+		msg := message.NewText(cm.Message)
+		_, err := client.SendPrivateMessage(uid, []message.IMessageElement{msg})
+		if err != nil {
+			logs.Error("[SendMsg] %s", err.Error())
+			return
 		}
-		resp, _ = requests.Post(url, data)
 	} else {
-		url := fmt.Sprintf("http://%v/send_group_msg", ip)
-		data := requests.Datas{
-			"group_id": cm.GroupId,
-			"message":  cm.Message,
+		msg := message.NewText(cm.Message)
+		_, err := client.SendGroupMessage(gid, []message.IMessageElement{msg})
+		if err != nil {
+			logs.Error("[SendMsg] %s", err.Error())
+			return
 		}
-		resp, _ = requests.Post(url, data)
 	}
 
-	return resp.Text()
+	return
 }
 
 func (Deal) BanPeople(cm model.CommonMsg) string {
-	url := fmt.Sprintf("http://%v/set_group_ban", ip)
-	data := requests.Datas{
-		"group_id": cm.GroupId,
-		"user_id":  cm.UserId,
-		"duration": "3600",
-	}
-	resp, _ := requests.Post(url, data)
-	return resp.Text()
+	return ""
 }
 
 //无返回值
 
 func (Deal) AddQqFri(uid string, flag string) string {
-	url := fmt.Sprintf("http://%v/set_friend_add_request", ip)
-	data := requests.Datas{
-		"flag":    flag,
-		"approve": "true",
-	}
-	resp, _ := requests.Post(url, data)
-	return resp.Text()
+	return ""
 }

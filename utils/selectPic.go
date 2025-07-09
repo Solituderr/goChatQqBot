@@ -2,7 +2,6 @@ package utils
 
 import (
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -15,7 +14,7 @@ func GetRandPic() string {
 
 	// 指定图片文件所在的文件夹路径
 	rootpath, err := os.Getwd()
-	content, err := ioutil.ReadFile(rootpath + "\\picpath.txt")
+	content, err := os.ReadFile(rootpath + "\\picpath.txt")
 	if err != nil {
 		fmt.Println(err)
 		return "g"
@@ -24,7 +23,7 @@ func GetRandPic() string {
 	folderPath := file
 
 	// 获取文件夹中的所有文件
-	files, err := ioutil.ReadDir(folderPath)
+	files, err := os.ReadDir(folderPath)
 	if err != nil {
 		return "g"
 	}

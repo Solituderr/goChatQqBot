@@ -1,8 +1,9 @@
-package utils
+package cronjob
 
 import (
 	"fmt"
 	"go-svc-tpl/model"
+	"go-svc-tpl/utils"
 	"time"
 )
 
@@ -12,7 +13,7 @@ func ClearUserInfo() {
 		localTime := time.Now().Local()
 		hour, min, _ := localTime.Clock()
 		if hour == 0 && min == 0 {
-			RcvGift = 0
+			utils.RcvGift = 0
 			if err := model.ResetUser(); err != nil {
 				fmt.Println(err)
 			} else {

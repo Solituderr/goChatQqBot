@@ -2,6 +2,7 @@ package app
 
 import (
 	"errors"
+	"go-svc-tpl/app/controller"
 	"go-svc-tpl/logs"
 	"os"
 	"os/signal"
@@ -13,11 +14,14 @@ import (
 
 	"github.com/LagrangeDev/LagrangeGo/client"
 	"github.com/LagrangeDev/LagrangeGo/client/auth"
-	"github.com/LagrangeDev/LagrangeGo/message"
 	"github.com/LagrangeDev/LagrangeGo/utils"
 )
 
 var qqclient *client.QQClient
+
+func GetQQClient() *client.QQClient {
+	return qqclient
+}
 
 func InitLagrangeBot() {
 	// 使用特定的协议版本
@@ -54,28 +58,7 @@ func InitLagrangeBot() {
 		}
 	}
 
-	// TODO(Echo) 订阅群消息事件
-	qqclient.GroupMessageEvent.Subscribe(func(client *client.QQClient, event *message.GroupMessage) {
-		if event.ToString() == "114514" {
-			img, _ := message.NewFileImage("testgroup.png")
-			_, err := client.SendGroupMessage(event.GroupUin, []message.IMessageElement{img})
-			if err != nil {
-				return
-			}
-		}
-	})
-
-	qqclient.PrivateMessageEvent.Subscribe(func(client *client.QQClient, event *message.PrivateMessage) {
-		img, _ := message.NewFileImage("testprivate.png")
-		_, err := client.SendPrivateMessage(event.Sender.Uin, []message.IMessageElement{img})
-		if err != nil {
-			return
-		}
-	})
-
-	qqclient.DisconnectedEvent.Subscribe(func(client *client.QQClient, event *client.DisconnectedEvent) {
-		logs.Info("连接已断开：%v", event.Message)
-	})
+	controller.ClassifyReq(qqclient)
 }
 
 func StartLagrangeBot() {

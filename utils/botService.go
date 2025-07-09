@@ -2,87 +2,87 @@ package utils
 
 import (
 	"fmt"
-	"github.com/labstack/echo/v4"
 	"go-svc-tpl/model"
 	"go-svc-tpl/service"
 	"math/rand"
-	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/LagrangeDev/LagrangeGo/client"
 )
 
 // 控制两个天天宝
-func AddEnableBot1(cm model.CommonMsg, flag int, c echo.Context) error {
+func AddEnableBot1(cm model.CommonMsg, flag int, qqclient *client.QQClient) error {
 	if cm.UserId != authQq {
-		return c.String(http.StatusOK, "not auth")
+		return nil
 	}
 	Enable1[cm.GroupId] = true
 	cm.Message = "天天宝1号已启用"
-	qqServe.SendMsg(cm, flag)
-	return c.String(http.StatusOK, "okk")
+	qqServe.SendMsg(cm, flag, qqclient)
+	return nil
 }
-func AddEnableBot2(cm model.CommonMsg, flag int, c echo.Context) error {
+func AddEnableBot2(cm model.CommonMsg, flag int, qqclient *client.QQClient) error {
 	if cm.UserId != authQq {
-		return c.String(http.StatusOK, "not auth")
+		return nil
 	}
 	Enable2[cm.GroupId] = true
 	cm.Message = "天天宝2号已启用"
-	qqServe.SendMsg(cm, flag)
-	return c.String(http.StatusOK, "okk")
+	qqServe.SendMsg(cm, flag, qqclient)
+	return nil
 }
 
 // bot开机关机
-func AddStartBot(cm model.CommonMsg, flag int, c echo.Context) error {
+func AddStartBot(cm model.CommonMsg, flag int, qqclient *client.QQClient) error {
 	if cm.UserId != authQq {
-		return c.String(http.StatusOK, "not auth")
+		return nil
 	}
 	IsOn[cm.GroupId] = true
 	cm.Message = "天天宝已开机"
-	qqServe.SendMsg(cm, flag)
-	return c.String(http.StatusOK, "okk")
+	qqServe.SendMsg(cm, flag, qqclient)
+	return nil
 }
 
-func AddStopBot(cm model.CommonMsg, flag int, c echo.Context) error {
+func AddStopBot(cm model.CommonMsg, flag int, qqclient *client.QQClient) error {
 	if cm.UserId != authQq {
-		return c.String(http.StatusOK, "not auth")
+		return nil
 	}
 	IsOn[cm.GroupId] = false
 	cm.Message = "天天宝已关机"
-	qqServe.SendMsg(cm, flag)
-	return c.String(http.StatusOK, "okk")
+	qqServe.SendMsg(cm, flag, qqclient)
+	return nil
 }
 
 // 测试bot是否运行
-func AddTestContext(cm model.CommonMsg, flag int, c echo.Context) error {
+func AddTestContext(cm model.CommonMsg, flag int, qqclient *client.QQClient) error {
 	if cm.UserId == "742277855" {
 		cm.Message = "测试成功！"
-		qqServe.SendMsg(cm, flag)
-		return c.String(http.StatusOK, "ok")
+		qqServe.SendMsg(cm, flag, qqclient)
+		return nil
 	} else {
-		return c.String(http.StatusOK, "not ok")
+		return nil
 	}
 }
 
 // 菜单
-func AddMenu(cm model.CommonMsg, flag int, c echo.Context) error {
+func AddMenu(cm model.CommonMsg, flag int, qqclient *client.QQClient) error {
 	m := service.GetJsonStr("menu")
 	if strings.Contains(cm.Message, "菜单") {
 		rsp := m["功能菜单"]
 		cm.Message = rsp.(string)
-		qqServe.SendMsg(cm, flag)
-		return c.String(http.StatusOK, "okk")
+		qqServe.SendMsg(cm, flag, qqclient)
+		return nil
 	} else {
 		rsp := m[cm.Message]
 		cm.Message = rsp.(string)
-		qqServe.SendMsg(cm, flag)
-		return c.String(http.StatusOK, "okk")
+		qqServe.SendMsg(cm, flag, qqclient)
+		return nil
 	}
 }
 
 // 签到
-func AddSignIn(cm model.CommonMsg, flag int, c echo.Context) error {
+func AddSignIn(cm model.CommonMsg, flag int, qqclient *client.QQClient) error {
 	nickname := cm.Sender.NickName
 	nickname = CheckIfChangeName(cm.UserId, nickname)
 	var f = false
@@ -102,90 +102,90 @@ func AddSignIn(cm model.CommonMsg, flag int, c echo.Context) error {
 	if err := model.MinusSign(cm.UserId); err != nil {
 		if strings.Contains(err.Error(), "签到次数") {
 			cm.Message = mHasSign
-			qqServe.SendMsg(cm, flag)
-			return c.String(http.StatusOK, "okk")
+			qqServe.SendMsg(cm, flag, qqclient)
+			return nil
 		} else {
 			cm.Message = err.Error()
-			qqServe.SendMsg(cm, flag)
-			return c.String(http.StatusOK, "not okk")
+			qqServe.SendMsg(cm, flag, qqclient)
+			return nil
 		}
 	} else {
 		num := service.RandNum(50, 100)
 		err = model.UpdateLoveRate(cm.UserId, num)
 		if f {
 			cm.Message = mNoSign
-			qqServe.SendMsg(cm, flag)
+			qqServe.SendMsg(cm, flag, qqclient)
 			cm.Message = mAfter
-			qqServe.SendMsg(cm, flag)
+			qqServe.SendMsg(cm, flag, qqclient)
 		} else {
 			cm.Message = mAfter
-			qqServe.SendMsg(cm, flag)
+			qqServe.SendMsg(cm, flag, qqclient)
 		}
-		return c.String(http.StatusOK, "okk")
+		return nil
 	}
 
 }
 
 // 好感
-func AddSelectLove(cm model.CommonMsg, flag int, c echo.Context) error {
+func AddSelectLove(cm model.CommonMsg, flag int, qqclient *client.QQClient) error {
 	nickname := cm.Sender.NickName
 	nickname = CheckIfChangeName(cm.UserId, nickname)
 	if favor, err := model.QueryLoveRate(cm.UserId); err != nil {
 		cm.Message = err.Error()
-		qqServe.SendMsg(cm, flag)
-		return c.String(http.StatusOK, "not ok")
+		qqServe.SendMsg(cm, flag, qqclient)
+		return nil
 	} else {
 		if favor < 500 {
 			cm.Message = fmt.Sprintf("对%s的好感度只有%d，要多多来和本剑圣聊天！", nickname, favor)
-			qqServe.SendMsg(cm, flag)
-			return c.String(http.StatusOK, "okk")
+			qqServe.SendMsg(cm, flag, qqclient)
+			return nil
 		} else if favor < 1000 {
 			cm.Message = fmt.Sprintf("对%s的好感度有%d，谢谢你一直支持本剑圣", nickname, favor)
-			qqServe.SendMsg(cm, flag)
-			return c.String(http.StatusOK, "okk")
+			qqServe.SendMsg(cm, flag, qqclient)
+			return nil
 		} else if favor < 5000 {
 			cm.Message = fmt.Sprintf("好感度到%d了，不愧是%s！我的忠实粉丝！", favor, nickname)
-			qqServe.SendMsg(cm, flag)
-			return c.String(http.StatusOK, "okk")
+			qqServe.SendMsg(cm, flag, qqclient)
+			return nil
 		} else {
 			cm.Message = fmt.Sprintf("对%s的好感度已经有%v了，宣布你就是我的粉丝中第一名", nickname, favor)
-			qqServe.SendMsg(cm, flag)
-			return c.String(http.StatusOK, "okk")
+			qqServe.SendMsg(cm, flag, qqclient)
+			return nil
 		}
 	}
 }
 
 // 交互
-func AddAction(cm model.CommonMsg, flag int, c echo.Context) error {
+func AddAction(cm model.CommonMsg, flag int, qqclient *client.QQClient) error {
 	nickname := cm.Sender.NickName
 	nickname = CheckIfChangeName(cm.UserId, nickname)
 	m := service.GetJsonStr("jiaohu")
 	reply := service.RandMessage(m[cm.Message])
 	reply = strings.Replace(reply, "{nick}", nickname, 1)
 	cm.Message = reply
-	qqServe.SendMsg(cm, flag)
-	return c.String(http.StatusOK, "okk")
+	qqServe.SendMsg(cm, flag, qqclient)
+	return nil
 }
 
 // 一会吃啥
-func AddEatWhat(cm model.CommonMsg, flag int, c echo.Context) error {
+func AddEatWhat(cm model.CommonMsg, flag int, qqclient *client.QQClient) error {
 	m := service.GetJsonStr("chisha")
 	reply := m["一会吃啥"].(string)
 	eat := service.RandMessage(m["吃啥"])
 	reply = strings.Replace(reply, "{chisha}", eat, 1)
 	cm.Message = reply
-	qqServe.SendMsg(cm, flag)
-	return c.String(http.StatusOK, "okk")
+	qqServe.SendMsg(cm, flag, qqclient)
+	return nil
 }
 
 // 随机骰点
-func AddDiceRand(cm model.CommonMsg, flag int, c echo.Context) error {
+func AddDiceRand(cm model.CommonMsg, flag int, qqclient *client.QQClient) error {
 	m := cm.Message
 	nickname := cm.Sender.NickName
 	nickname = CheckIfChangeName(cm.UserId, nickname)
 	lis := strings.Split(m, " ")
 	if len(lis) == 1 {
-		return c.String(http.StatusOK, "not ok")
+		return nil
 	}
 	name := lis[1]
 
@@ -215,19 +215,19 @@ func AddDiceRand(cm model.CommonMsg, flag int, c echo.Context) error {
 	}
 	reply := fmt.Sprintf("%s掷骰 %s: %s", nickname, name, touzi)
 	cm.Message = reply
-	qqServe.SendMsg(cm, flag)
-	return c.String(http.StatusOK, "okk")
+	qqServe.SendMsg(cm, flag, qqclient)
+	return nil
 }
 
 // 石头剪刀布
-func AddStartRock(cm model.CommonMsg, flag int, c echo.Context) error {
+func AddStartRock(cm model.CommonMsg, flag int, qqclient *client.QQClient) error {
 	s := "来石头剪刀布吧~\n发送 我出石头/剪刀/布 来和天天宝比划比划,三局两胜也是可以的哟！"
 	cm.Message = s
-	qqServe.SendMsg(cm, flag)
-	return c.String(http.StatusOK, "okk")
+	qqServe.SendMsg(cm, flag, qqclient)
+	return nil
 }
 
-func AddRockGame(cm model.CommonMsg, flag int, c echo.Context) error {
+func AddRockGame(cm model.CommonMsg, flag int, qqclient *client.QQClient) error {
 	nickname := cm.Sender.NickName
 	nickname = CheckIfChangeName(cm.UserId, nickname)
 	s := strings.Replace(cm.Message, "我出", "", 1)
@@ -240,12 +240,12 @@ func AddRockGame(cm model.CommonMsg, flag int, c echo.Context) error {
 	reply := m[iswin].(string)
 	reply = strings.Replace(reply, "{nick}", nickname, 1)
 	cm.Message = tiantian + reply
-	qqServe.SendMsg(cm, flag)
-	return c.String(http.StatusOK, "okk")
+	qqServe.SendMsg(cm, flag, qqclient)
+	return nil
 }
 
 // 周易算卦
-func AddTellerZhou(cm model.CommonMsg, flag int, c echo.Context) error {
+func AddTellerZhou(cm model.CommonMsg, flag int, qqclient *client.QQClient) error {
 	m := service.GetJsonStr("suangua")
 	reply := m["周易算卦"].(string)
 	msg := service.RandMessage(m["六十四卦"])
@@ -255,12 +255,12 @@ func AddTellerZhou(cm model.CommonMsg, flag int, c echo.Context) error {
 	s2 = strings.Replace(s2, "}", "", 1)
 	msg1 := service.RandMessage(m[s2])
 	cm.Message = reply + s1 + msg1
-	qqServe.SendMsg(cm, flag)
-	return c.String(http.StatusOK, "okk")
+	qqServe.SendMsg(cm, flag, qqclient)
+	return nil
 }
 
 // abo测试
-func AddABOTest(cm model.CommonMsg, flag int, c echo.Context) error {
+func AddABOTest(cm model.CommonMsg, flag int, qqclient *client.QQClient) error {
 	nickname := cm.Sender.NickName
 	nickname = CheckIfChangeName(cm.UserId, nickname)
 	m := service.GetJsonStr("abo")
@@ -271,12 +271,12 @@ func AddABOTest(cm model.CommonMsg, flag int, c echo.Context) error {
 	reply = strings.Replace(reply, "{abo性别}", gender, 1)
 	reply = strings.Replace(reply, "{abo味道}", smell, 1)
 	cm.Message = reply
-	qqServe.SendMsg(cm, flag)
-	return c.String(http.StatusOK, "okk")
+	qqServe.SendMsg(cm, flag, qqclient)
+	return nil
 }
 
 // cp关键词
-func AddCPKeyWord(cm model.CommonMsg, flag int, c echo.Context) error {
+func AddCPKeyWord(cm model.CommonMsg, flag int, qqclient *client.QQClient) error {
 	m := service.GetJsonStr("cpword")
 	reply := m["cp梗"].(string)
 	s := m["cp"]
@@ -293,12 +293,12 @@ func AddCPKeyWord(cm model.CommonMsg, flag int, c echo.Context) error {
 		reply = strings.ReplaceAll(reply, old, n)
 	}
 	cm.Message = reply
-	qqServe.SendMsg(cm, flag)
-	return c.String(http.StatusOK, "okk")
+	qqServe.SendMsg(cm, flag, qqclient)
+	return nil
 }
 
 // cp名
-func AddCPName(cm model.CommonMsg, flag int, c echo.Context) error {
+func AddCPName(cm model.CommonMsg, flag int, qqclient *client.QQClient) error {
 	nickname := cm.Sender.NickName
 	nickname = CheckIfChangeName(cm.UserId, nickname)
 	msg := strings.Replace(cm.Message, "天天宝今日", "", 1)
@@ -308,48 +308,48 @@ func AddCPName(cm model.CommonMsg, flag int, c echo.Context) error {
 	where := service.RandMessage(m["where"])
 	reply := fmt.Sprintf("今天为%s抽取的%s关键词如下：\n%s\n%s\n%s", nickname, msg, what, how, where)
 	cm.Message = reply
-	qqServe.SendMsg(cm, flag)
-	return c.String(http.StatusOK, "okk")
+	qqServe.SendMsg(cm, flag, qqclient)
+	return nil
 }
 
 // 天天宝原著
-func AddOriginalWork(cm model.CommonMsg, flag int, c echo.Context) error {
+func AddOriginalWork(cm model.CommonMsg, flag int, qqclient *client.QQClient) error {
 	m := service.GetJsonStr("yuanzhu")
 	reply := service.RandMessage(m["原著"])
 	cm.Message = reply
-	qqServe.SendMsg(cm, flag)
-	return c.String(http.StatusOK, "okk")
+	qqServe.SendMsg(cm, flag, qqclient)
+	return nil
 }
 
 // 生日
-func AddBirthday(cm model.CommonMsg, flag int, c echo.Context) error {
+func AddBirthday(cm model.CommonMsg, flag int, qqclient *client.QQClient) error {
 	nickname := cm.Sender.NickName
 	nickname = CheckIfChangeName(cm.UserId, nickname)
 	m := service.GetJsonStr("shengri")
 	reply := service.RandMessage(m["生日"])
 	reply = strings.Replace(reply, "{nick}", nickname, 1)
 	cm.Message = reply
-	qqServe.SendMsg(cm, flag)
-	return c.String(http.StatusOK, "okk")
+	qqServe.SendMsg(cm, flag, qqclient)
+	return nil
 }
 
-// 发表情
-func AddSendEmoji(cm model.CommonMsg, flag int, c echo.Context) error {
+// 发表情 TODO
+func AddSendEmoji(cm model.CommonMsg, flag int, qqclient *client.QQClient) error {
 	picpath := GetRandPic()
 	if picpath == "g" {
 		cm.Message = "出错了"
-		qqServe.SendMsg(cm, 2)
-		return c.String(http.StatusOK, "not ok")
+		qqServe.SendMsg(cm, 2, qqclient)
+		return nil
 	} else {
 		cqCode := fmt.Sprintf("[CQ:image,file=file:///%v]", picpath)
 		cm.Message = cqCode
-		qqServe.SendMsg(cm, 2)
-		return c.String(http.StatusOK, "okk")
+		qqServe.SendMsg(cm, 2, qqclient)
+		return nil
 	}
 }
 
 // 礼物
-func AddRcvGift(cm model.CommonMsg, flag int, c echo.Context) error {
+func AddRcvGift(cm model.CommonMsg, flag int, qqclient *client.QQClient) error {
 	nickname := cm.Sender.NickName
 	nickname = CheckIfChangeName(cm.UserId, nickname)
 	gift := strings.Replace(cm.Message, "送天天宝", "", 1)
@@ -370,28 +370,28 @@ func AddRcvGift(cm model.CommonMsg, flag int, c echo.Context) error {
 		reply = strings.Replace(reply, "{nick}", nickname, -1)
 		if err := model.UpdateLoveRate(cm.UserId, addfavor); err != nil {
 			cm.Message = err.Error()
-			qqServe.SendMsg(cm, flag)
-			return c.String(http.StatusOK, "not ok")
+			qqServe.SendMsg(cm, flag, qqclient)
+			return nil
 		} else {
 			cm.Message = reply
-			qqServe.SendMsg(cm, flag)
-			return c.String(http.StatusOK, "okk")
+			qqServe.SendMsg(cm, flag, qqclient)
+			return nil
 		}
 	} else {
 		if gift == "" || gift == "礼物" {
 			cm.Message = fmt.Sprintf("嗯嗯嗯？%s要送天天宝什么？", nickname)
-			qqServe.SendMsg(cm, flag)
-			return c.String(http.StatusOK, "okk")
+			qqServe.SendMsg(cm, flag, qqclient)
+			return nil
 		} else {
 			if err := model.MinusGift(cm.UserId); err != nil {
 				if strings.Contains(err.Error(), "送礼次数用完") {
 					cm.Message = fmt.Sprintf("可以了可以了，%s今天已经送得太多了，已经收到你的心意了！你站在此不要走动，本剑圣去给你买杯奶茶！", nickname)
-					qqServe.SendMsg(cm, flag)
-					return c.String(http.StatusOK, "okk")
+					qqServe.SendMsg(cm, flag, qqclient)
+					return nil
 				} else {
 					cm.Message = err.Error()
-					qqServe.SendMsg(cm, flag)
-					return c.String(http.StatusOK, "not ok")
+					qqServe.SendMsg(cm, flag, qqclient)
+					return nil
 				}
 			} else {
 				RcvGift += 1
@@ -406,25 +406,25 @@ func AddRcvGift(cm model.CommonMsg, flag int, c echo.Context) error {
 				err := model.UpdateLoveRate(cm.UserId, addfavor)
 				fmt.Println(err)
 				cm.Message = reply
-				qqServe.SendMsg(cm, flag)
-				return c.String(http.StatusOK, "okk")
+				qqServe.SendMsg(cm, flag, qqclient)
+				return nil
 			}
 		}
 	}
 }
 
 // 添加推送
-func AddPush(cm model.CommonMsg, flag int, c echo.Context) error {
+func AddPush(cm model.CommonMsg, flag int, qqclient *client.QQClient) error {
 	if cm.UserId != authQq {
-		return c.String(http.StatusOK, "not auth")
+		return nil
 	}
 	t := cm.Message
 	split := strings.SplitN(t, " ", 3)
 
 	if len(split) != 3 {
 		cm.Message = "格式不正确"
-		qqServe.SendMsg(cm, flag)
-		return c.String(http.StatusOK, "okk")
+		qqServe.SendMsg(cm, flag, qqclient)
+		return nil
 	}
 	gid := split[0]
 	send := split[2]
@@ -439,25 +439,25 @@ func AddPush(cm model.CommonMsg, flag int, c echo.Context) error {
 	}
 	if err := model.AddPush(pm); err != nil {
 		cm.Message = "添加推送失败"
-		qqServe.SendMsg(cm, flag)
-		return c.String(http.StatusOK, "not ok")
+		qqServe.SendMsg(cm, flag, qqclient)
+		return nil
 	} else {
 		cm.Message = "添加推送成功"
-		qqServe.SendMsg(cm, flag)
-		return c.String(http.StatusOK, "okk")
+		qqServe.SendMsg(cm, flag, qqclient)
+		return nil
 	}
 }
 
-func AddDelPush(cm model.CommonMsg, flag int, c echo.Context) error {
+func AddDelPush(cm model.CommonMsg, flag int, qqclient *client.QQClient) error {
 	if cm.UserId != authQq {
-		return c.String(http.StatusOK, "not auth")
+		return nil
 	}
 	t := cm.Message
 	split := strings.SplitN(t, " ", 2)
 	if len(split) != 2 {
 		cm.Message = "格式不正确"
-		qqServe.SendMsg(cm, flag)
-		return c.String(http.StatusOK, "okk")
+		qqServe.SendMsg(cm, flag, qqclient)
+		return nil
 	}
 	gid := split[0]
 	lis := strings.Split(split[1], ":")
@@ -470,36 +470,36 @@ func AddDelPush(cm model.CommonMsg, flag int, c echo.Context) error {
 	}
 	if err := model.DelPush(pm); err != nil {
 		cm.Message = "删除推送失败"
-		qqServe.SendMsg(cm, flag)
-		return c.String(http.StatusOK, "not ok")
+		qqServe.SendMsg(cm, flag, qqclient)
+		return nil
 	} else {
 		cm.Message = "删除推送成功"
-		qqServe.SendMsg(cm, flag)
-		return c.String(http.StatusOK, "okk")
+		qqServe.SendMsg(cm, flag, qqclient)
+		return nil
 	}
 
 }
 
-func AddListPush(cm model.CommonMsg, flag int, c echo.Context) error {
+func AddListPush(cm model.CommonMsg, flag int, qqclient *client.QQClient) error {
 	if push, err := model.ListPush(); err != nil {
 		cm.Message = "查询失败"
-		qqServe.SendMsg(cm, flag)
-		return c.String(http.StatusOK, "not ok")
+		qqServe.SendMsg(cm, flag, qqclient)
+		return nil
 	} else {
 		for _, v := range push {
 			t := fmt.Sprintf("时间：%d:%d\n", v.MsgTime.Hour(), v.MsgTime.Minute())
 			g := fmt.Sprintf("群号：%s\n", v.GroupId)
 			m := fmt.Sprintf("消息：%s", v.Message)
 			cm.Message = t + g + m
-			qqServe.SendMsg(cm, flag)
+			qqServe.SendMsg(cm, flag, qqclient)
 		}
-		return c.String(http.StatusOK, "okk")
+		return nil
 	}
 }
 
-func AddListPushTime(cm model.CommonMsg, flag int, c echo.Context) error {
+func AddListPushTime(cm model.CommonMsg, flag int, qqclient *client.QQClient) error {
 	if cm.UserId != authQq {
-		return c.String(http.StatusOK, "not auth")
+		return nil
 	}
 	queryTime, _ := model.QueryTime()
 	var reply = "所有推送时间：\n"
@@ -509,54 +509,54 @@ func AddListPushTime(cm model.CommonMsg, flag int, c echo.Context) error {
 		reply += fmt.Sprintf("%d时%d分\n", hour, minute)
 	}
 	cm.Message = reply[:len(reply)-1]
-	qqServe.SendMsg(cm, flag)
-	return c.String(http.StatusOK, "okk")
+	qqServe.SendMsg(cm, flag, qqclient)
+	return nil
 }
 
-func AddStartPush(cm model.CommonMsg, flag int, c echo.Context) error {
+func AddStartPush(cm model.CommonMsg, flag int, qqclient *client.QQClient) error {
 	if cm.UserId != authQq {
-		return c.String(http.StatusOK, "not auth")
+		return nil
 	}
 	PushOn[PushGid] = true
 	cm.Message = "推送功能已开启"
-	qqServe.SendMsg(cm, flag)
-	return c.String(http.StatusOK, "okk")
+	qqServe.SendMsg(cm, flag, qqclient)
+	return nil
 }
 
-func AddStopPush(cm model.CommonMsg, flag int, c echo.Context) error {
+func AddStopPush(cm model.CommonMsg, flag int, qqclient *client.QQClient) error {
 	if cm.UserId != authQq {
-		return c.String(http.StatusOK, "not auth")
+		return nil
 	}
 	PushOn[PushGid] = false
 	cm.Message = "推送功能已关闭"
-	qqServe.SendMsg(cm, flag)
-	return c.String(http.StatusOK, "okk")
+	qqServe.SendMsg(cm, flag, qqclient)
+	return nil
 }
 
 // 改称呼
-func AddChangeName(cm model.CommonMsg, flag int, c echo.Context) error {
+func AddChangeName(cm model.CommonMsg, flag int, qqclient *client.QQClient) error {
 	nickname := cm.Sender.NickName
 	name := cm.Message
 	if err := model.ChangeName(cm.UserId, name); err != nil {
 		cm.Message = "修改称呼失败"
-		qqServe.SendMsg(cm, flag)
-		return c.String(http.StatusOK, "not ok")
+		qqServe.SendMsg(cm, flag, qqclient)
+		return nil
 	} else {
 		cm.Message = fmt.Sprintf("已将%s的名称更改为%s", nickname, name)
-		qqServe.SendMsg(cm, flag)
-		return c.String(http.StatusOK, "okk")
+		qqServe.SendMsg(cm, flag, qqclient)
+		return nil
 	}
 }
 
 // 幸运值
-func AddLuckyNum(cm model.CommonMsg, flag int, c echo.Context) error {
+func AddLuckyNum(cm model.CommonMsg, flag int, qqclient *client.QQClient) error {
 	nickname := cm.Sender.NickName
 	nickname = CheckIfChangeName(cm.UserId, nickname)
 	num := service.RandNum(0, 100)
 	reply := fmt.Sprintf("看剑看剑看剑！本剑圣宣布%s今天的幸运值是%d", nickname, num)
 	cm.Message = reply
-	qqServe.SendMsg(cm, flag)
-	return c.String(http.StatusOK, "okk")
+	qqServe.SendMsg(cm, flag, qqclient)
+	return nil
 }
 
 //所有图片爬取
