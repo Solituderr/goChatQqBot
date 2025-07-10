@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"go-svc-tpl/logs"
 	"go-svc-tpl/model"
 	"go-svc-tpl/service"
 	"math/rand"
@@ -11,6 +12,7 @@ import (
 	"time"
 
 	"github.com/LagrangeDev/LagrangeGo/client"
+	"github.com/LagrangeDev/LagrangeGo/message"
 )
 
 // 控制两个天天宝
@@ -341,9 +343,13 @@ func AddSendEmoji(cm model.CommonMsg, flag int, qqclient *client.QQClient) error
 		qqServe.SendMsg(cm, 2, qqclient)
 		return nil
 	} else {
-		cqCode := fmt.Sprintf("[CQ:image,file=file:///%v]", picpath)
-		cm.Message = cqCode
-		qqServe.SendMsg(cm, 2, qqclient)
+		image, err := message.NewFileImage(picpath)
+		if err != nil {
+			logs.Error("[AddSendEmoji] %v", err)
+			return nil
+		}
+		cm.Message = ""
+		qqServe.SendMsg(cm, 2, qqclient, image)
 		return nil
 	}
 }

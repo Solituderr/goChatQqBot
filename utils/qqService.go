@@ -10,7 +10,7 @@ import (
 )
 
 type QqServe interface {
-	SendMsg(cm model.CommonMsg, flag int, client *client.QQClient)
+	SendMsg(cm model.CommonMsg, flag int, client *client.QQClient, elements ...message.IMessageElement)
 	AddQqFri(uid string, flag string) string
 	BanPeople(cm model.CommonMsg) string
 }
@@ -23,7 +23,7 @@ func GetQQServer() QqServe {
 
 // 响应msg id
 
-func (Deal) SendMsg(cm model.CommonMsg, flag int, client *client.QQClient) {
+func (Deal) SendMsg(cm model.CommonMsg, flag int, client *client.QQClient, elements ...message.IMessageElement) {
 	//1表示群聊at 0表示私聊 2 表示群聊不at
 	uid1, err := strconv.Atoi(cm.UserId)
 	if err != nil {
@@ -40,21 +40,24 @@ func (Deal) SendMsg(cm model.CommonMsg, flag int, client *client.QQClient) {
 	if flag == 1 {
 		atMsg := message.NewAt(uid)
 		msg := message.NewText(cm.Message)
-		_, err := client.SendGroupMessage(gid, []message.IMessageElement{atMsg, msg})
+		msgElements := append([]message.IMessageElement{atMsg, msg}, elements...)
+		_, err := client.SendGroupMessage(gid, msgElements)
 		if err != nil {
 			logs.Error("[SendMsg] %s", err.Error())
 			return
 		}
 	} else if flag == 0 {
 		msg := message.NewText(cm.Message)
-		_, err := client.SendPrivateMessage(uid, []message.IMessageElement{msg})
+		msgElements := append([]message.IMessageElement{msg}, elements...)
+		_, err := client.SendPrivateMessage(uid, msgElements)
 		if err != nil {
 			logs.Error("[SendMsg] %s", err.Error())
 			return
 		}
 	} else {
 		msg := message.NewText(cm.Message)
-		_, err := client.SendGroupMessage(gid, []message.IMessageElement{msg})
+		msgElements := append([]message.IMessageElement{msg}, elements...)
+		_, err := client.SendGroupMessage(gid, msgElements)
 		if err != nil {
 			logs.Error("[SendMsg] %s", err.Error())
 			return

@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"encoding/json"
 	"go-svc-tpl/logs"
 	"go-svc-tpl/model"
 	"go-svc-tpl/service"
@@ -15,61 +16,53 @@ import (
 
 func ClassifyReq(qqclient *client.QQClient) error {
 
-	// TODO(Echo) 订阅群消息事件
-	qqclient.GroupMessageEvent.Subscribe(func(client *client.QQClient, event *message.GroupMessage) {
-		if event.ToString() == "114514" {
-			img, _ := message.NewFileImage("testgroup.png")
-			_, err := client.SendGroupMessage(event.GroupUin, []message.IMessageElement{img})
-			if err != nil {
-				return
-			}
-		}
-	})
-
-	qqclient.GroupNotifyEvent.Subscribe(func(client *client.QQClient, event event.INotifyEvent) {
-
-	})
-
 	qqclient.GroupMessageEvent.Subscribe(func(client *client.QQClient, event *message.GroupMessage) {
 		// 先打印出消息的结构信息
-		logs.Info("msg: %s", event.ToString())
+		logs.Info("msg: %v", event.ToString())
 		var flag int
 		var cMsg model.CommonMsg
-		var newMsg string
 		//转化为common message
 		gMsg := &model.GroupMsg{
 			Message: event.ToString(),
 			Sender: struct {
-				UserId   int64  "json:\"user_id\""
-				NickName string "json:\"nickname\""
-				Sex      string "json:\"sex\""
-				Age      int32  "json:\"age\""
+				UserId   int64
+				NickName string
+				Sex      string
+				Age      int32
 			}{
 				UserId:   int64(event.Sender.Uin),
 				NickName: event.Sender.Nickname,
 			},
 		}
 		//判断是否为at
-		if strings.Contains(gMsg.Message, utils.AtQqUid) {
+		elements := event.Elements
+		atMsg := &message.AtElement{}
+		if len(elements) != 0 && elements[0].Type() == message.At {
+			atMsg = elements[0].(*message.AtElement)
+			logs.Info("[ClassifyReq] atMsg: %v", atMsg.TargetUin)
+		}
+		if atMsg.TargetUin == utils.QqUid {
 			//为at
-			newMsg = gMsg.Message[utils.LenAtQqUid:]
+			elements = elements[1:]
 			flag = 1
 		} else {
 			//非at
-			newMsg = gMsg.Message
 			flag = 2
 		}
 
 		cMsg = model.CommonMsg{
-			UserId:  strconv.Itoa(int(event.Sender.Uin)),
-			GroupId: strconv.Itoa(int(event.GroupUin)),
-			Message: newMsg,
-			Sender:  gMsg.Sender,
+			UserId:   strconv.Itoa(int(event.Sender.Uin)),
+			GroupId:  strconv.Itoa(int(event.GroupUin)),
+			Message:  strings.TrimLeft(message.ToReadableString(elements), " "),
+			Elements: elements,
+			Sender:   gMsg.Sender,
 		}
+		data, _ := json.Marshal(cMsg)
+		logs.Info("[ClassifyReq] cMsg: %v", string(data))
 		//根据 cMsg 和 flag 写功能类 要根据有无groupId选择不同的flag
 		//无指定内容
 		var err error
-		switch newMsg {
+		switch cMsg.Message {
 		case ".enable1":
 			err = utils.AddEnableBot1(cMsg, flag, qqclient)
 			return
@@ -86,7 +79,7 @@ func ClassifyReq(qqclient *client.QQClient) error {
 		//	return c.String(http.StatusOK, "okk")
 		//}
 
-		switch newMsg {
+		switch cMsg.Message {
 		case ".bot on":
 			utils.AddStartBot(cMsg, flag, qqclient)
 			return
@@ -98,7 +91,7 @@ func ClassifyReq(qqclient *client.QQClient) error {
 			logs.Info("not on bot")
 			return
 		}
-		switch newMsg {
+		switch cMsg.Message {
 		case "/测":
 			err = utils.AddTestContext(cMsg, flag, qqclient)
 			return
@@ -165,22 +158,22 @@ func ClassifyReq(qqclient *client.QQClient) error {
 		case service.IsBiaoQing(cMsg.Message):
 			err = utils.AddSendEmoji(cMsg, flag, qqclient)
 			return
-		case strings.Contains(newMsg, "天天宝今日"):
+		case strings.Contains(cMsg.Message, "天天宝今日"):
 			err = utils.AddCPName(cMsg, flag, qqclient)
 			return
-		case strings.Contains(newMsg, "送天天宝"):
+		case strings.Contains(cMsg.Message, "送天天宝"):
 			err = utils.AddRcvGift(cMsg, flag, qqclient)
 			return
-		case strings.Contains(newMsg, "/addPush"):
-			cMsg.Message = newMsg[9:]
+		case strings.Contains(cMsg.Message, "/addPush"):
+			cMsg.Message = cMsg.Message[9:]
 			err = utils.AddPush(cMsg, flag, qqclient)
 			return
-		case strings.Contains(newMsg, "/delPush"):
-			cMsg.Message = newMsg[9:]
+		case strings.Contains(cMsg.Message, "/delPush"):
+			cMsg.Message = cMsg.Message[9:]
 			err = utils.AddDelPush(cMsg, flag, qqclient)
 			return
-		case newMsg[:3] == ".nn":
-			cMsg.Message = newMsg[4:]
+		case cMsg.Message[:3] == ".nn":
+			cMsg.Message = cMsg.Message[4:]
 			err = utils.AddChangeName(cMsg, flag, qqclient)
 			return
 		default:

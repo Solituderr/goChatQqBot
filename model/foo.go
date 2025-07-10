@@ -1,6 +1,10 @@
 package model
 
-import "time"
+import (
+	"time"
+
+	"github.com/LagrangeDev/LagrangeGo/message"
+)
 
 type Setting struct {
 	Summary string `json:"summary"`
@@ -26,17 +30,17 @@ type PushMsg struct {
 //消息上报结构体
 
 type GroupMsg struct {
-	MessageType string `json:"message_type" form:"message_type"`
-	MessageId   int32  `json:"message_id" form:"message_id"`
-	UserId      int64  `json:"user_id" form:"user_id"`
-	Message     string `json:"message" form:"message"`
-	RawMessage  string `json:"raw_message" form:"raw_message"`
-	GroupId     int64  `json:"group_id" form:"group_id"`
+	MessageType string
+	MessageId   int32
+	UserId      int64
+	Message     string
+	RawMessage  string
+	GroupId     int64
 	Sender      struct {
-		UserId   int64  `json:"user_id"`
-		NickName string `json:"nickname"`
-		Sex      string `json:"sex"`
-		Age      int32  `json:"age"`
+		UserId   int64
+		NickName string
+		Sex      string
+		Age      int32
 	} `json:"sender"`
 }
 
@@ -65,15 +69,16 @@ type CommonReq struct {
 
 // 封装通用消息
 type CommonMsg struct {
-	UserId  string `json:"user_id" form:"user_id"`
-	GroupId string `json:"group_id" form:"group_id"`
-	Message string `json:"message" form:"message"`
-	Sender  struct {
-		UserId   int64  `json:"user_id"`
-		NickName string `json:"nickname"`
-		Sex      string `json:"sex"`
-		Age      int32  `json:"age"`
-	} `json:"sender"`
+	UserId   string
+	GroupId  string
+	Message  string
+	Elements []message.IMessageElement
+	Sender   struct {
+		UserId   int64
+		NickName string
+		Sex      string
+		Age      int32
+	}
 }
 
 type AddFriMsg struct {
