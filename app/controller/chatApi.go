@@ -21,19 +21,6 @@ func ClassifyReq(qqclient *client.QQClient) error {
 		logs.Info("msg: %v", event.ToString())
 		var flag int
 		var cMsg model.CommonMsg
-		//转化为common message
-		gMsg := &model.GroupMsg{
-			Message: event.ToString(),
-			Sender: struct {
-				UserId   int64
-				NickName string
-				Sex      string
-				Age      int32
-			}{
-				UserId:   int64(event.Sender.Uin),
-				NickName: event.Sender.Nickname,
-			},
-		}
 		//判断是否为at
 		elements := event.Elements
 		atMsg := &message.AtElement{}
@@ -55,13 +42,26 @@ func ClassifyReq(qqclient *client.QQClient) error {
 			GroupId:  strconv.Itoa(int(event.GroupUin)),
 			Message:  strings.TrimLeft(message.ToReadableString(elements), " "),
 			Elements: elements,
-			Sender:   gMsg.Sender,
+			Sender: struct {
+				UserId   int64
+				NickName string
+				Sex      string
+				Age      int32
+			}{
+				UserId:   int64(event.Sender.Uin),
+				NickName: event.Sender.Nickname,
+			},
 		}
 		data, _ := json.Marshal(cMsg)
 		logs.Info("[ClassifyReq] cMsg: %v", string(data))
 		//根据 cMsg 和 flag 写功能类 要根据有无groupId选择不同的flag
 		//无指定内容
 		var err error
+		defer func() {
+			if err != nil {
+				logs.Error("[ClassifyReq] %v", err)
+			}
+		}()
 		switch cMsg.Message {
 		case ".enable1":
 			err = utils.AddEnableBot1(cMsg, flag, qqclient)
@@ -178,13 +178,12 @@ func ClassifyReq(qqclient *client.QQClient) error {
 			return
 		default:
 		}
-		if err != nil {
-			logs.Error("[ClassifyReq] %v", err)
-		}
-		return
 	})
 
 	qqclient.GroupJoinEvent.Subscribe(func(client *client.QQClient, event *event.GroupMemberIncrease) {
+		// 先打印出消息的结构信息
+		logs.Info("msg: %v", event.GroupEvent)
+
 		gid := strconv.Itoa(int(event.GroupUin))
 
 		if !utils.Enable1[gid] {
