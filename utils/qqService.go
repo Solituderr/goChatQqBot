@@ -67,8 +67,6 @@ func (Deal) SendMsg(cm model.CommonMsg, flag int, client *client.QQClient, eleme
 			return
 		}
 	}
-
-	return
 }
 
 func (Deal) BanPeople(cm model.CommonMsg) string {
