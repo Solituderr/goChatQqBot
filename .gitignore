@@ -4,4 +4,5 @@
 *.png
 images/
 *.bin
+*.txt
 basicData.go

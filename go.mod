@@ -16,6 +16,7 @@ require (
 require (
 	github.com/RomiChan/protobuf v0.1.1-0.20230204044148-2ed269a2e54d // indirect
 	github.com/RomiChan/syncx v0.0.0-20240418144900-b7402ffdebc7 // indirect
+	github.com/asmcos/requests v0.0.0-20210319030608-c839e8ae4946
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/fumiama/gofastTEA v0.1.3 // indirect
 	github.com/fumiama/imgsz v0.0.4 // indirect

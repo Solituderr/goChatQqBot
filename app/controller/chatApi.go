@@ -200,7 +200,6 @@ func ClassifyReq(qqclient *client.QQClient) error {
 		if err != nil {
 			logs.Error("[GroupJoinEvent] %v", err)
 		}
-		return
 	})
 
 	qqclient.DisconnectedEvent.Subscribe(func(client *client.QQClient, event *client.DisconnectedEvent) {

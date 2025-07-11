@@ -7,6 +7,7 @@ package main
 
 import (
 	"go-svc-tpl/app"
+	"go-svc-tpl/client"
 	"go-svc-tpl/cronjob"
 	"go-svc-tpl/model"
 )
@@ -16,9 +17,11 @@ func init() {
 }
 
 func main() {
+	client.Init()
 	model.Init()
 	app.InitLagrangeBot()
 	go cronjob.PushPeripheral()
 	go cronjob.ClearUserInfo()
+	go cronjob.PushWebInfo()
 	app.StartLagrangeBot()
 }

@@ -25,12 +25,16 @@ func GetQQServer() QqServe {
 
 func (Deal) SendMsg(cm model.CommonMsg, flag int, client *client.QQClient, elements ...message.IMessageElement) {
 	//1表示群聊at 0表示私聊 2 表示群聊不at
-	uid1, err := strconv.Atoi(cm.UserId)
-	if err != nil {
-		logs.Error("[SendMsg] conv uid i64 to str error")
-		return
+	var uid uint32
+	if flag != 2 {
+		uid1, err := strconv.Atoi(cm.UserId)
+		if err != nil {
+			logs.Error("[SendMsg] conv uid i64 to str error")
+			return
+		}
+		uid = uint32(uid1)
 	}
-	uid := uint32(uid1)
+
 	gid1, err := strconv.Atoi(cm.GroupId)
 	if err != nil {
 		logs.Error("[SendMsg] conv gid i64 to str error")
