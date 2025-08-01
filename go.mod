@@ -1,16 +1,36 @@
 module go-svc-tpl
 
-go 1.23.0
+go 1.24
 
-toolchain go1.23.10
+toolchain go1.24.5
 
 require (
 	github.com/LagrangeDev/LagrangeGo v0.1.4
+	github.com/imroc/req/v3 v3.54.0
 	github.com/mattn/go-colorable v0.1.14
+	github.com/microcosm-cc/bluemonday v1.0.27
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/viper v1.10.1
 	gorm.io/driver/mysql v1.2.3
 	gorm.io/gorm v1.22.5
+)
+
+require (
+	github.com/andybalholm/brotli v1.2.0 // indirect
+	github.com/aymerick/douceur v0.2.0 // indirect
+	github.com/cloudflare/circl v1.6.1 // indirect
+	github.com/gorilla/css v1.0.1 // indirect
+	github.com/hashicorp/errwrap v1.1.0 // indirect
+	github.com/hashicorp/go-multierror v1.1.1 // indirect
+	github.com/icholy/digest v1.1.0 // indirect
+	github.com/klauspost/compress v1.18.0 // indirect
+	github.com/quic-go/qpack v0.5.1 // indirect
+	github.com/quic-go/quic-go v0.53.0 // indirect
+	github.com/refraction-networking/utls v1.7.3 // indirect
+	go.uber.org/mock v0.5.2 // indirect
+	golang.org/x/crypto v0.39.0 // indirect
+	golang.org/x/mod v0.25.0 // indirect
+	golang.org/x/tools v0.34.0 // indirect
 )
 
 require (
@@ -37,7 +57,7 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
-	github.com/tidwall/gjson v1.18.0 // indirect
+	github.com/tidwall/gjson v1.18.0
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 	golang.org/x/image v0.28.0 // indirect

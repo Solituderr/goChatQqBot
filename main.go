@@ -23,5 +23,6 @@ func main() {
 	go cronjob.PushPeripheral()
 	go cronjob.ClearUserInfo()
 	go cronjob.PushWebInfo()
+	go cronjob.StartWeibo()
 	app.StartLagrangeBot()
 }
