@@ -37,7 +37,7 @@ func GetContainerId(data string) string {
 
 }
 
-func GetWei(data string, uid string) string {
+func GetWei(data string, uid string) (string, string) {
 	t := gjson.Get(data, "data.cards")
 	for _, v := range t.Array() {
 		if v.Get("card_type").Int() == 9 && !strings.Contains(v.Get("profile_type_id").Str, "top") {
@@ -49,13 +49,13 @@ func GetWei(data string, uid string) string {
 				text := v.Get("mblog").Get("text").Str
 				fmt.Printf("当前uid：%s 检测到新微博。\n", uid)
 				WeiBoId[uid] = id
-				return text
+				return text, id
 			} else {
-				return ""
+				return "", ""
 			}
 		}
 	}
-	return ""
+	return "", ""
 }
 
 func GetWeibo(uid string) {
@@ -67,26 +67,26 @@ func GetWeibo(uid string) {
 		"type":  "uid",
 		"value": uid,
 	}).Get(url)
-	//username := GetUserName(resp.String())
+	username := GetUserName(resp.String())
 	container := GetContainerId(resp.String())
-	//fmt.Println(container)
-	//fmt.Printf("用户名为：%s", username)
+	// fmt.Println(container)
+	// fmt.Printf("用户名为：%s", username)
 	wbData, err := client.R().SetQueryParams(map[string]string{
 		"type":        "uid",
 		"value":       uid,
 		"containerid": container,
 	}).Get(url)
-	//fmt.Println(wbData.String())
+	// fmt.Println(wbData.String())
 
 	if err != nil {
 		logrus.Error(err)
 	}
-	s := GetWei(wbData.String(), uid)
+	s, mblogID := GetWei(wbData.String(), uid)
 	s = regexp.MustCompile("<a.*?a>").ReplaceAllString(s, "")
 	s = strings.ReplaceAll(s, "<br />", "\n")
 	msg := bluemonday.StrictPolicy().Sanitize(s)
 	if msg != "" {
-		send := fmt.Sprintf("%s", msg)
+		send := fmt.Sprintf("【%s】发布了一条微博:\n%s\nhttps://weibo.com/%s/%s", username, msg, uid, mblogID)
 		for _, gid := range needSendGroup {
 			cm := model.CommonMsg{
 				GroupId: gid,
