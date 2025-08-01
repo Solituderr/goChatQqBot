@@ -6,3 +6,4 @@ images/
 *.bin
 *.txt
 basicData.go
+*.exe
