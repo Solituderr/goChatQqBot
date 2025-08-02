@@ -185,7 +185,7 @@ func ClassifyReq(qqclient *client.QQClient) error {
 		logs.Info("msg GroupInvitedEvent: %v", event)
 	})
 
-	qqclient.GroupJoinEvent.Subscribe(func(client *client.QQClient, event *event.GroupMemberIncrease) {
+	qqclient.GroupMemberJoinEvent.Subscribe(func(client *client.QQClient, event *event.GroupMemberIncrease) {
 		// 先打印出消息的结构信息
 		logs.Info("msg enter group: %v", event.GroupEvent)
 
