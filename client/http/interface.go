@@ -4,10 +4,12 @@ import (
 	"go-svc-tpl/logs"
 
 	"github.com/asmcos/requests"
+	"github.com/imroc/req/v3"
 )
 
 type IHttpService interface {
 	HttpGetRequest(url string, headers requests.Header) string
+	HttpPostRequest(url string, headers map[string]string, body string) (string, error)
 }
 
 type HttpServiceImpl struct {
@@ -24,4 +26,13 @@ func (h *HttpServiceImpl) HttpGetRequest(url string, headers requests.Header) st
 		return ""
 	}
 	return resp.Text()
+}
+
+func (h *HttpServiceImpl) HttpPostRequest(url string, headers map[string]string, body string) (string, error) {
+	resp, err := req.DevMode().R().SetHeaders(headers).SetBody(body).Post(url)
+	if err != nil {
+		logs.Error("[HttpPostRequest] %v", err)
+		return "", err
+	}
+	return resp.ToString()
 }
