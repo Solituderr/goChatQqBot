@@ -25,9 +25,14 @@ func PushWebInfo() {
 		// 如果当前不一样，说明有更新
 		nPtr := 0
 		for nPtr < len(nowUrls) {
-			if len(latestUrls) == 0 || nowUrls[nPtr] != latestUrls[0] {
-				nPtr++
+			if len(latestUrls) == 0 {
+				nPtr = len(nowUrls)
+				break
 			}
+			if nowUrls[nPtr] == latestUrls[0] {
+				break
+			}
+			nPtr++
 		}
 		for _, url := range nowUrls[:nPtr] {
 			for _, gid := range needSendGroup {
@@ -82,7 +87,7 @@ batchId=951941`
 		logs.Error("[extractUrl] err: %v", err)
 		return nil
 	}
-	logs.Info("html: %s", html)
+	// logs.Info("html: %s", html)
 	re := regexp.MustCompile(`https?://[a-zA-Z0-9-]+\.lofter\.com/post/[a-zA-Z0-9_]+`)
 
 	// 查找所有匹配项
@@ -98,6 +103,6 @@ batchId=951941`
 		logs.Info("[PushWebInfo] latestUrl: %v", urls)
 		return urls
 	}
-	logs.Error("无获取到指定信息")
+	logs.Error("[PushWebInfo] 无获取到指定信息")
 	return nil
 }

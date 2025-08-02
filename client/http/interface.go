@@ -29,7 +29,7 @@ func (h *HttpServiceImpl) HttpGetRequest(url string, headers requests.Header) st
 }
 
 func (h *HttpServiceImpl) HttpPostRequest(url string, headers map[string]string, body string) (string, error) {
-	resp, err := req.DevMode().R().SetHeaders(headers).SetBody(body).Post(url)
+	resp, err := req.R().SetHeaders(headers).SetBody(body).Post(url)
 	if err != nil {
 		logs.Error("[HttpPostRequest] %v", err)
 		return "", err
