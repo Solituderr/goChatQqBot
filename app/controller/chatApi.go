@@ -182,7 +182,7 @@ func ClassifyReq(qqclient *client.QQClient) error {
 
 	qqclient.GroupJoinEvent.Subscribe(func(client *client.QQClient, event *event.GroupMemberIncrease) {
 		// 先打印出消息的结构信息
-		logs.Info("msg: %v", event.GroupEvent)
+		logs.Info("msg enter group: %v", event.GroupEvent)
 
 		gid := strconv.Itoa(int(event.GroupUin))
 
