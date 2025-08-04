@@ -25,6 +25,7 @@ func PushWebInfo() {
 		if len(nowUrls) == 0 {
 			continue
 		}
+		nowUrls = nowUrls[:1]
 		// 如果当前不一样，说明有更新
 		nPtr := 0
 		for nPtr < len(nowUrls) {
